@@ -20,4 +20,4 @@ def get_screen_resolution():
 
 SCREEN_WIDTH, SCREEN_HEIGHT = get_screen_resolution()
 
-FIELD_WIDTH, FIELD_HEIGHT = 20000, 20000
+FIELD_WIDTH, FIELD_HEIGHT = 2000, 2000

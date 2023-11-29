@@ -9,5 +9,5 @@ class Scout:
         self.start_find()
 
     def start_find(self):
-        self.drone.change_direction(direction=Vector2(x=1, y=1))
+        self.drone.go(Vector2(1000, 1000))
 

@@ -1,6 +1,8 @@
 import pygame
 from pygame import Surface
 from pygame.math import Vector2
+
+from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT
 from src.support.support import import_folder
 from pygame.transform import rotate
 
@@ -21,6 +23,9 @@ class Drone(pygame.sprite.Sprite):
         self.direction = Vector2()
         self.position = Vector2(self.rect.center)
         self.speed = 100
+
+        self.target = Vector2(self.rect.center)
+        self.finish = True
 
     def import_assets(self):
         full_path = 'assets/drone'
@@ -46,11 +51,12 @@ class Drone(pygame.sprite.Sprite):
         else:
             self.direction.x = 0
 
-    def change_direction(self, direction: Vector2):
-        self.direction.x = direction.x
-        self.direction.y = direction.y
-
     def move(self, dt):
+        if self.finish:
+            return
+        self.direction = Vector2(x=self.target.x - self.rect.x, y=self.target.y - self.rect.y)
+        if self.direction.x == 0 and self.direction.y == 0:
+            self.finish = True
 
         if self.direction.magnitude():
             self.direction = self.direction.normalize()
@@ -60,6 +66,11 @@ class Drone(pygame.sprite.Sprite):
 
         self.position.y += self.direction.y * self.speed * dt
         self.rect.centery = self.position.y
+
+    def go(self, target: Vector2):
+        if 0 < target.x < FIELD_WIDTH and 0 < target.y < FIELD_HEIGHT:
+            self.target = target
+            self.finish = False
 
     def update(self, dt):
         # self.input()

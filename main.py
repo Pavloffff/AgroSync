@@ -1,5 +1,7 @@
 import pygame
 import sys
+
+from src.component.title import Title
 from src.settings.settings import *
 from src.surface.field import Field
 
@@ -9,6 +11,7 @@ class Model:
 
     def __init__(self):
         pygame.init()
+        Title.font = pygame.font.Font(None, 24)
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("AgroSync")
         self.clock = pygame.time.Clock()

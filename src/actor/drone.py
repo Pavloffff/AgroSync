@@ -2,6 +2,7 @@ import pygame
 from pygame import Surface
 from pygame.math import Vector2
 
+from src.component.title import Title
 from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT
 from src.support.support import import_folder
 from pygame.transform import rotate
@@ -26,6 +27,11 @@ class Drone(pygame.sprite.Sprite):
 
         self.target = Vector2(self.rect.center)
         self.finish = True
+        self.wait_time = 0
+
+        self.battery = 1000
+        self.state = None
+        self.title = Title(self.rect, str(self.state))
 
     def import_assets(self):
         full_path = 'assets/drone'
@@ -33,6 +39,7 @@ class Drone(pygame.sprite.Sprite):
 
     def animate(self, dt):
         self.frame_index = (self.frame_index + 100 * dt) % len(self.animations)
+        self.title.update(str(self.state) + " " + str(self.battery))
         self.image = self.animations[int(self.frame_index)]
 
     def input(self):
@@ -54,7 +61,15 @@ class Drone(pygame.sprite.Sprite):
     def move(self, dt):
         if self.finish:
             return
+
         self.direction = Vector2(x=self.target.x - self.rect.x, y=self.target.y - self.rect.y)
+
+        if self.wait_time > 0:
+            self.wait_time -= 1 * dt
+        else:
+            self.wait_time = 0
+            self.finish = True
+
         if self.direction.x == 0 and self.direction.y == 0:
             self.finish = True
 
@@ -72,7 +87,13 @@ class Drone(pygame.sprite.Sprite):
             self.target = target
             self.finish = False
 
+    def wait_drone(self, time: int):
+        if time > 0:
+            self.target = Vector2(x=self.rect.x, y=self.rect.y)
+            self.wait_time = time
+            self.finish = False
+
     def update(self, dt):
-        # self.input()
+        self.battery -= 50 * dt
         self.move(dt)
         self.animate(dt)

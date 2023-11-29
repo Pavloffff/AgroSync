@@ -7,6 +7,7 @@ from src.actor.scout import Scout
 class Field:
     def __init__(self):
         self.drones = []
+        self.titles = []
         self.display_surface = pygame.display.get_surface()
         self.feild_surface = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
         self.scale = 1.0
@@ -18,7 +19,9 @@ class Field:
 
     def setup(self):
         for i in range(100, 500, 30):
-            self.drones.append(Scout((i, i), self.all_sprites))
+            drone = Scout((i, i), self.all_sprites)
+            self.drones.append(drone)
+            self.titles.append(drone.title)
 
     def handle_mouse_button_down(self, mouse_pos):
         self.mouse_down = True
@@ -55,6 +58,8 @@ class Field:
         self.all_sprites.draw(self.feild_surface)  # Рисуем спрайты на большой поверхности
 
         self.all_sprites.update(dt)
+        for title in self.titles:
+            self.feild_surface.blit(title.title, title.title_rect)
 
         # Масштабирование большой поверхности до размеров дисплейного экрана
         scaled_surface = pygame.transform.scale(self.feild_surface,

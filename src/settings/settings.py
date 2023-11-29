@@ -12,10 +12,12 @@ def get_screen_resolution():
 
     for monitor in get_monitors():
         if (monitor.x <= window_left <= monitor.x + monitor.width + 100) and \
-           (monitor.y <= window_top <= monitor.y + monitor.height + 100):
+                (monitor.y <= window_top <= monitor.y + monitor.height + 100):
             return monitor.width, monitor.height
 
     return 512, 512
 
 
 SCREEN_WIDTH, SCREEN_HEIGHT = get_screen_resolution()
+
+FIELD_WIDTH, FIELD_HEIGHT = 20000, 20000

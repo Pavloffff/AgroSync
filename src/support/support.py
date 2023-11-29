@@ -12,6 +12,4 @@ def import_folder(path):
             image_surf = pygame.transform.scale(pygame.image.load(full_path).convert_alpha(), (100, 100))
             surface_list.append(image_surf)
 
-    print(surface_list)
-
     return surface_list

@@ -8,6 +8,7 @@ class Field:
     def __init__(self):
         self.drones = []
         self.display_surface = pygame.display.get_surface()
+        self.feild_surface = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
         self.scale = 1.0
         self.offset = [0, 0]
         self.mouse_down = False
@@ -50,14 +51,16 @@ class Field:
                          (mouse_pos[1] - self.offset[1])
 
     def __call__(self, dt, *args, **kwargs):
-        temp_surface = pygame.Surface(self.display_surface.get_size())
-        temp_surface.fill('white')
-        self.all_sprites.draw(temp_surface)
+        self.feild_surface.fill('yellow')  # Заливаем большую поверхность белым
+        self.all_sprites.draw(self.feild_surface)  # Рисуем спрайты на большой поверхности
+
         self.all_sprites.update(dt)
 
-        scaled_surface = pygame.transform.scale(temp_surface,
-                                                (int(temp_surface.get_width() * self.scale),
-                                                 int(temp_surface.get_height() * self.scale)))
+        # Масштабирование большой поверхности до размеров дисплейного экрана
+        scaled_surface = pygame.transform.scale(self.feild_surface,
+                                                (int(self.feild_surface.get_width() * self.scale),
+                                                 int(self.feild_surface.get_height() * self.scale)))
 
+        # Очистка и отображение масштабированной поверхности на дисплейном экране
         self.display_surface.fill('white')
         self.display_surface.blit(scaled_surface, self.offset)

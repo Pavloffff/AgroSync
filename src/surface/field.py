@@ -18,7 +18,7 @@ class Field:
         self.setup()
 
     def setup(self):
-        for i in range(100, 500, 30):
+        for i in range(500, 1500, 50):
             drone = Scout((i, i), self.all_sprites)
             self.drones.append(drone)
             self.titles.append(drone.title)

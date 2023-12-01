@@ -1,4 +1,6 @@
 import pygame
+
+from src.grid.grid import Grid
 from src.settings.settings import *
 from src.actor.drone import Drone
 from src.actor.scout import Scout
@@ -17,6 +19,7 @@ class Field:
         self.last_mouse_pos = None
         self.all_sprites = pygame.sprite.Group()
         self.visible_sprites = pygame.sprite.Group()
+        self.grid = Grid(self.all_sprites)
         self.setup()
 
     def setup(self):
@@ -55,13 +58,16 @@ class Field:
         self.offset[1] = mouse_pos[1] - scale_change * \
                          (mouse_pos[1] - self.offset[1])
 
-    def is_sprite_visible(self, sprite):
-        visible_rect = pygame.Rect(
+    def get_visible_rect(self):
+        return pygame.Rect(
             -self.offset[0] / self.scale,
             -self.offset[1] / self.scale,
             (self.display_surface.get_width()) / self.scale,
             (self.display_surface.get_height()) / self.scale
         )
+
+    def is_sprite_visible(self, sprite):
+        visible_rect = self.get_visible_rect()
         sprite_rect = sprite.rect
         scaled_sprite_rect = pygame.Rect(
             (sprite_rect.x - self.offset[0] * self.scale) * self.scale,
@@ -74,6 +80,13 @@ class Field:
     def __call__(self, dt, *args, **kwargs):
         self.field_surface.fill('yellow')
         self.all_sprites.update(dt)
+
+        visible_rect = self.get_visible_rect()
+        self.grid.get_visible(
+            pos=Vector2(x=visible_rect.x, y=visible_rect.y),
+            size=visible_rect.size
+        )
+
         for sprite in self.all_sprites:
             visible = self.is_sprite_visible(sprite)
             if visible:

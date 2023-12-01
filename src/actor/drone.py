@@ -12,6 +12,8 @@ from pygame.transform import rotate
 
 
 class Drone(pygame.sprite.Sprite):
+    size = (128, 128)
+
     class Status(Enum):
         Work = 1
         Home = 2
@@ -46,11 +48,11 @@ class Drone(pygame.sprite.Sprite):
 
     def import_assets(self):
         full_path = 'assets/drone'
-        self.animations = import_folder(full_path)
+        self.animations = import_folder(full_path, self.size)
 
     def animate(self, dt):
         self.frame_index = (self.frame_index + 100 * dt) % len(self.animations)
-        self.title.update(str(self.state) + " " + str(self.target) + " " + str(self.finish) + " " + str(self.battery))
+        self.title.update(str(self.state) + " " + str(self.battery))
         self.image = self.animations[int(self.frame_index)]
 
     def input(self):

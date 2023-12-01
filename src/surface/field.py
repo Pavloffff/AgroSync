@@ -6,15 +6,17 @@ from src.actor.scout import Scout
 
 class Field:
     def __init__(self):
+        # self.square = None
         self.drones = []
         self.titles = []
         self.display_surface = pygame.display.get_surface()
-        self.feild_surface = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
-        self.scale = 1.0
+        self.field_surface = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
+        self.scale = 0.5
         self.offset = [0, 0]
         self.mouse_down = False
         self.last_mouse_pos = None
         self.all_sprites = pygame.sprite.Group()
+        self.visible_sprites = pygame.sprite.Group()
         self.setup()
 
     def setup(self):
@@ -42,7 +44,7 @@ class Field:
     def zoom(self, direction, mouse_pos):
         old_scale = self.scale
         if direction == "in":
-            self.scale = min(5.0, self.scale + 0.1)
+            self.scale = min(0.8, self.scale + 0.1)
         elif direction == "out":
             self.scale = max(0.1, self.scale - 0.1)
 
@@ -53,19 +55,43 @@ class Field:
         self.offset[1] = mouse_pos[1] - scale_change * \
                          (mouse_pos[1] - self.offset[1])
 
+    def is_sprite_visible(self, sprite):
+        visible_rect = pygame.Rect(
+            -self.offset[0] / self.scale,
+            -self.offset[1] / self.scale,
+            (self.display_surface.get_width()) / self.scale,
+            (self.display_surface.get_height()) / self.scale
+        )
+        sprite_rect = sprite.rect
+        scaled_sprite_rect = pygame.Rect(
+            (sprite_rect.x - self.offset[0] * self.scale) * self.scale,
+            (sprite_rect.y - self.offset[1] * self.scale) * self.scale,
+            float(sprite_rect.width) * self.scale,
+            float(sprite_rect.height) * self.scale
+        )
+        return visible_rect.colliderect(scaled_sprite_rect)
+
     def __call__(self, dt, *args, **kwargs):
-        self.feild_surface.fill('yellow')  # Заливаем большую поверхность белым
-        self.all_sprites.draw(self.feild_surface)  # Рисуем спрайты на большой поверхности
-
+        self.field_surface.fill('yellow')
         self.all_sprites.update(dt)
+        for sprite in self.all_sprites:
+            visible = self.is_sprite_visible(sprite)
+            if visible:
+                self.visible_sprites.add(sprite)
+            elif self.visible_sprites.has(sprite):
+                self.visible_sprites.remove(sprite)
+
+        print(self.visible_sprites)
+
+        self.visible_sprites.draw(self.field_surface)
+
         for title in self.titles:
-            self.feild_surface.blit(title.title, title.title_rect)
+            if self.is_sprite_visible(title):
+                self.field_surface.blit(title.title, title.title_rect)
 
-        # Масштабирование большой поверхности до размеров дисплейного экрана
-        scaled_surface = pygame.transform.scale(self.feild_surface,
-                                                (int(self.feild_surface.get_width() * self.scale),
-                                                 int(self.feild_surface.get_height() * self.scale)))
+        scaled_surface = pygame.transform.scale(self.field_surface,
+                                                (int(self.field_surface.get_width() * self.scale),
+                                                 int(self.field_surface.get_height() * self.scale)))
 
-        # Очистка и отображение масштабированной поверхности на дисплейном экране
         self.display_surface.fill('white')
         self.display_surface.blit(scaled_surface, self.offset)

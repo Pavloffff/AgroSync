@@ -13,6 +13,48 @@ from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT
 width, height = FIELD_WIDTH // ChunkSprite.size[0] + 1, FIELD_HEIGHT // ChunkSprite.size[1] + 1
 
 
+def generate_grid():
+    grid = [[] for i in range(height)]
+    for i in range(height):
+        for j in range(width):
+            if i == height // 2 and j == width // 2:
+                grid[i].append(BaseChunk.type)
+                continue
+            if random.randint(0, 9) < 4:
+                rand_factor = random.randint(0, 9)
+                if 0 < rand_factor < 3:
+                    grid[i].append(WaterChunk.type)
+                elif 3 < rand_factor < 6:
+                    grid[i].append(GroundChunk.type)
+                else:
+                    grid[i].append(GrassChunk.type)
+            else:
+                grid[i].append(FieldChunk.type)
+    return grid
+
+
+def smooth_grid(grid: list[list[int]]):
+    for i in range(height):
+        for j in range(width):
+            neighbors = {}
+            for y in range(i - 1, i + 2):
+                for x in range(j - 1, j + 2):
+                    if grid[y % height][x % width] in neighbors.keys():
+                        neighbors[grid[y % height][x % width]] += 1
+                    else:
+                        neighbors[grid[y % height][x % width]] = 1
+            types = list(neighbors.keys())
+            nums = list(neighbors.values())
+            for x in range(1, len(nums)):
+                nums[x] += nums[x - 1]
+            rand_choose = random.randint(0, nums[len(nums) - 1])
+            for x in range(0, len(nums)):
+                if rand_choose < nums[x]:
+                    grid[i][j] = types[x]
+                    break
+    return grid
+
+
 def get_chunk_pos(chunk_idx: tuple[int, int]):
     return Vector2(x=chunk_idx[0] * ChunkSprite.size[0], y=chunk_idx[1] * ChunkSprite.size[1])
 
@@ -28,20 +70,22 @@ class Grid:
         self.setup_grid()
 
     def setup_grid(self):
+        grid = generate_grid()
+        for i in range(100):
+            print(f"Grid smooth №{i}")
+            grid = smooth_grid(grid)
 
         for i in range(height):
             for j in range(width):
                 if i == height // 2 and j == width // 2:
                     self.grid[i].append(BaseChunk(group=self.group, pos=(j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                     continue
-                if random.randint(0, 9) < 2:
-                    rand_factor = random.randint(0, 9)
-                    if rand_factor == 0:
-                        self.grid[i].append(WaterChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
-                    elif 0 < rand_factor < 3:
-                        self.grid[i].append(GroundChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
-                    else:
-                        self.grid[i].append(GrassChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                if grid[i][j] == WaterChunk.type:
+                    self.grid[i].append(WaterChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                elif grid[i][j] == GroundChunk.type:
+                    self.grid[i].append(GroundChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                elif grid[i][j] == GrassChunk.type:
+                    self.grid[i].append(GrassChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                 else:
                     self.grid[i].append(FieldChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
 

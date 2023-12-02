@@ -25,7 +25,7 @@ class Model:
                         self.__running = False
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:  # Левая кнопка мыши
+                    if event.button in [1, 3]:  # Левая кнопка мыши
                         self.field.handle_mouse_button_down(
                             pygame.mouse.get_pos())
                     elif event.button == 4:  # Колесико вверх
@@ -34,7 +34,7 @@ class Model:
                         self.field.zoom("out", pygame.mouse.get_pos())
 
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:  # Левая кнопка мыши
+                    if event.button in [1, 3]:  # Левая кнопка мыши
                         self.field.handle_mouse_button_up()
                 elif event.type == pygame.MOUSEMOTION:
                     self.field.handle_mouse_motion(pygame.mouse.get_pos())

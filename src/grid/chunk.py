@@ -1,5 +1,5 @@
 from pygame.sprite import Sprite
-
+import random
 from src.settings.settings import LAYERS
 from src.support.support import import_image
 
@@ -15,8 +15,10 @@ class ChunkSprite(Sprite):
 
 
 class Chunk:
+    type = 0
     barrier = False
-    image_path = "assets/chunk/grass.png"
+    image_path = "assets/chunk/raw_field.png"
+    is_field = False
 
     def __init__(self, group, pos):
         self.sprite = ChunkSprite(group=group, pos=pos, image_path=self.image_path)

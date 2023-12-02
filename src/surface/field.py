@@ -22,6 +22,7 @@ class Field:
         self.visible_sprites = pygame.sprite.Group()
         self.invisible_drone_sprites = pygame.sprite.Group()
         self.grid = Grid(self.field_sprites)
+        print(str(self.grid))
         self.setup()
 
     def setup(self):
@@ -106,7 +107,7 @@ class Field:
                 self.visible_sprites.remove(sprite)
                 self.invisible_drone_sprites.add(sprite)
 
-        print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
+        # print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
         self.visible_sprites.update(dt)
         self.invisible_drone_sprites.update(dt)
 

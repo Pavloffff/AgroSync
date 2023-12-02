@@ -112,12 +112,10 @@ class Drone(pygame.sprite.Sprite):
 
     def do_tasks(self, dt):
         if self.finish:
-            print("delete")
             self.tasks = self.tasks[1:] if len(self.tasks) > 1 else []
         if len(self.tasks) == 0:
             self.Wait(1).do(self, dt)
         else:
-            print(self.tasks, self.finish)
             self.tasks[0].do(self, dt)
 
     def move_to_path(self, path: list[Vector2]):
@@ -134,11 +132,9 @@ class Drone(pygame.sprite.Sprite):
             self.state = self.Status.Active
             return
         if self.battery.get_percent() < 30 and self.state == self.Status.Active:
-            print("1", self.tasks)
             base_path = self.grid.get_path_to_base(self.position)
             self.state = self.Status.Home
             self.move_to_path(base_path)
-            print("2", self.tasks)
         elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is Base:
             self.add_task(self.Charging())
 

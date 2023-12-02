@@ -1,6 +1,13 @@
+import random
+
 from pygame import Vector2
 
-from src.grid.chunk import ChunkSprite, Chunk
+from src.grid.chunk import ChunkSprite
+from src.grid.chunk_types.base import BaseChunk
+from src.grid.chunk_types.field import FieldChunk
+from src.grid.chunk_types.grass import GrassChunk
+from src.grid.chunk_types.ground import GroundChunk
+from src.grid.chunk_types.water import WaterChunk
 from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT
 
 width, height = FIELD_WIDTH // ChunkSprite.size[0] + 1, FIELD_HEIGHT // ChunkSprite.size[1] + 1
@@ -21,18 +28,22 @@ class Grid:
         self.setup_grid()
 
     def setup_grid(self):
+
         for i in range(height):
             for j in range(width):
+                if i == height // 2 and j == width // 2:
+                    self.grid[i].append(BaseChunk(group=self.group, pos=(j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                    continue
                 if random.randint(0, 9) < 2:
                     rand_factor = random.randint(0, 9)
                     if rand_factor == 0:
-                        self.grid[i].append(WaterChunk(group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                        self.grid[i].append(WaterChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                     elif 0 < rand_factor < 3:
-                        self.grid[i].append(GroundChunk(group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                        self.grid[i].append(GroundChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                     else:
-                        self.grid[i].append(GrassChunk(group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                        self.grid[i].append(GrassChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                 else:
-                    self.grid[i].append(FieldChunk(group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
+                    self.grid[i].append(FieldChunk(self.group, (j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
 
     def get_chunk(self, pos: Vector2):
         size_tile = ChunkSprite.size
@@ -43,7 +54,7 @@ class Grid:
         # TODO: тут нужен нормальный поиск
         for i in range(height):
             for j in range(width):
-                if type(self.grid[i][j]) is Base:
+                if type(self.grid[i][j]) is BaseChunk:
                     return [get_chunk_pos((j, i))]
         return []
 

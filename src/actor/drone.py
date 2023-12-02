@@ -6,7 +6,7 @@ from pygame.math import Vector2
 
 from src.component.battery import Battery
 from src.component.title import Title
-from src.grid.chunk_types.base import Base
+from src.grid.chunk_types.base import BaseChunk
 from src.grid.grid import Grid
 from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT, LAYERS
 from src.support.support import import_folder
@@ -135,7 +135,7 @@ class Drone(pygame.sprite.Sprite):
             base_path = self.grid.get_path_to_base(self.position)
             self.state = self.Status.Home
             self.move_to_path(base_path)
-        elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is Base:
+        elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is BaseChunk:
             self.add_task(self.Charging())
 
     def update(self, dt):

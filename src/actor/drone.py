@@ -6,7 +6,7 @@ from pygame.math import Vector2
 
 from src.component.battery import Battery
 from src.component.title import Title
-from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT
+from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT, LAYERS
 from src.support.support import import_folder
 from pygame.transform import rotate
 
@@ -30,6 +30,7 @@ class Drone(pygame.sprite.Sprite):
         # general setup
         self.image = self.animations[self.frame_index]
         self.rect = self.image.get_rect(center=pos)
+        self.z = LAYERS['drone']
 
         # movement attributes
         self.direction = Vector2()

@@ -17,14 +17,16 @@ class Field:
         self.offset = [0, 0]
         self.mouse_down = False
         self.last_mouse_pos = None
-        self.all_sprites = pygame.sprite.Group()
+        self.drone_sprites = pygame.sprite.Group()
+        self.field_sprites = pygame.sprite.Group()
         self.visible_sprites = pygame.sprite.Group()
-        self.grid = Grid(self.all_sprites)
+        self.invisible_drone_sprites = pygame.sprite.Group()
+        self.grid = Grid(self.field_sprites)
         self.setup()
 
     def setup(self):
         for i in range(500, 1500, 50):
-            drone = Scout((i, i), self.all_sprites)
+            drone = Scout((i, i), self.drone_sprites)
             self.drones.append(drone)
             self.titles.append(drone.title)
 
@@ -78,8 +80,8 @@ class Field:
         return visible_rect.colliderect(scaled_sprite_rect)
 
     def __call__(self, dt, *args, **kwargs):
-        self.field_surface.fill('yellow')
-        self.all_sprites.update(dt)
+        # self.field_surface.fill('yellow')
+        # self.drone_sprites.update(dt)
 
         visible_rect = self.get_visible_rect()
         self.grid.get_visible(
@@ -87,16 +89,33 @@ class Field:
             size=visible_rect.size
         )
 
-        for sprite in self.all_sprites:
+        for sprite in self.field_sprites:
             visible = self.is_sprite_visible(sprite)
             if visible:
                 self.visible_sprites.add(sprite)
             elif self.visible_sprites.has(sprite):
                 self.visible_sprites.remove(sprite)
 
-        print(self.visible_sprites)
+        for sprite in self.drone_sprites:
+            visible = self.is_sprite_visible(sprite)
+            if visible:
+                self.visible_sprites.add(sprite)
+                if self.invisible_drone_sprites.has(sprite):
+                    self.invisible_drone_sprites.remove(sprite)
+            elif self.visible_sprites.has(sprite):
+                self.visible_sprites.remove(sprite)
+                self.invisible_drone_sprites.add(sprite)
 
-        self.visible_sprites.draw(self.field_surface)
+        print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
+        self.visible_sprites.update(dt)
+        self.invisible_drone_sprites.update(dt)
+
+        for layer in LAYERS.values():
+            for sprite in self.visible_sprites:
+                if sprite.z == layer:
+                    self.field_surface.blit(sprite.image, sprite.rect)
+
+        # self.visible_sprites.draw(self.display_surface)
 
         for title in self.titles:
             if self.is_sprite_visible(title):

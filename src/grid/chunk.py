@@ -1,10 +1,12 @@
 from pygame.sprite import Sprite
 
+from src.settings.settings import LAYERS
 from src.support.support import import_image
 
 
 class ChunkSprite(Sprite):
     size = (256, 256)
+    z = LAYERS['field']
 
     def __init__(self, group, image_path, pos):
         super().__init__(group)

@@ -22,4 +22,9 @@ def get_screen_resolution():
 
 SCREEN_WIDTH, SCREEN_HEIGHT = get_screen_resolution()
 
-FIELD_WIDTH, FIELD_HEIGHT = 4096, 4096
+FIELD_WIDTH, FIELD_HEIGHT = 8192, 8192
+
+LAYERS = {
+    'field': 0,
+    'drone': 1
+}

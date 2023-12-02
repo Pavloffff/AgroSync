@@ -6,6 +6,8 @@ from pygame.math import Vector2
 
 from src.component.battery import Battery
 from src.component.title import Title
+from src.grid.chunk_types.base import Base
+from src.grid.grid import Grid
 from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT, LAYERS
 from src.support.support import import_folder
 from pygame.transform import rotate
@@ -14,13 +16,63 @@ from pygame.transform import rotate
 class Drone(pygame.sprite.Sprite):
     size = (128, 128)
 
-    class Status(Enum):
-        Work = 1
-        Home = 2
-        Charging = 3
-        Wait = 4
+    class Task:
+        def do(self, drone: super.__class__, dt):
+            pass
 
-    def __init__(self, pos, group):
+    class Move(Task):
+        def __init__(self, target: Vector2):
+            if 0 <= target.x <= FIELD_WIDTH and 0 <= target.y <= FIELD_HEIGHT:
+                self.target = target
+            else:
+                self.target = Vector2(
+                    x=target.x % FIELD_WIDTH if target.x >= 0 else 0,
+                    y=target.y % FIELD_HEIGHT if target.y >= 0 else 0
+                )
+
+        def do(self, drone: super.__class__, dt):
+            drone.battery.state = drone.battery.Status.Move
+            drone.finish = False
+
+            direction = Vector2(x=self.target.x - drone.rect.x, y=self.target.y - drone.rect.y)
+            if direction.x == 0 and direction.y == 0:
+                drone.finish = True
+                return
+
+            if direction.magnitude():
+                direction = direction.normalize()
+
+            drone.position.x += direction.x * drone.speed * dt
+            drone.rect.centerx = drone.position.x
+
+            drone.position.y += direction.y * drone.speed * dt
+            drone.rect.centery = drone.position.y
+
+    class Wait(Task):
+        def __init__(self, wait_time: int):
+            self.wait_time = wait_time
+
+        def do(self, drone: super.__class__, dt):
+            drone.battery.state = drone.battery.Status.Wait
+            drone.finish = False
+
+            if self.wait_time > 0:
+                self.wait_time -= 1 * dt
+            else:
+                drone.finish = True
+
+    class Charging(Task):
+        def do(self, drone: super.__class__, dt):
+            drone.finish = False
+            if drone.battery.state == drone.battery.Status.EndCharging:
+                drone.finish = True
+            drone.battery.state = drone.battery.Status.Charging
+
+    class Status(Enum):
+        Active = 1
+        Home = 2
+
+    def __init__(self, pos, group, grid: Grid):
         super().__init__(group)
 
         self.animations: list[Surface] = []
@@ -37,15 +89,17 @@ class Drone(pygame.sprite.Sprite):
         self.position = Vector2(self.rect.center)
         self.speed = 300
 
-        self.target = Vector2(self.rect.center)
-        self.finish = True
-        self.wait_time = 0
+        # manage attributes
+        self.tasks: list[Drone.Task] = [self.Wait(1)]
+        self.finish = False
 
+        # component attributes
         self.battery = Battery(max_size=1000, wait_expense=50, move_expense=100, charging_increment=100)
-        self.state = None
+        self.state = self.Status.Active
         self.title = Title(self.rect, str(self.state))
 
-        self.home = Vector2(pos[0], pos[1])
+        # map attribute
+        self.grid = grid
 
     def import_assets(self):
         full_path = 'assets/drone'
@@ -56,93 +110,40 @@ class Drone(pygame.sprite.Sprite):
         self.title.update(str(self.state) + " " + str(self.battery))
         self.image = self.animations[int(self.frame_index)]
 
-    def input(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.direction.y = -1
-        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
-
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.direction.x = -1
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.direction.x = 1
-        else:
-            self.direction.x = 0
-
-    def move(self, dt):
+    def do_tasks(self, dt):
         if self.finish:
-            return
+            print("delete")
+            self.tasks = self.tasks[1:] if len(self.tasks) > 1 else []
+        if len(self.tasks) == 0:
+            self.Wait(1).do(self, dt)
+        else:
+            print(self.tasks, self.finish)
+            self.tasks[0].do(self, dt)
 
-        self.direction = Vector2(x=self.target.x - self.rect.x, y=self.target.y - self.rect.y)
+    def move_to_path(self, path: list[Vector2]):
+        self.tasks.clear()
+        for target in path:
+            self.tasks.append(self.Move(target))
 
-        if self.battery.state == self.battery.Status.EndCharging:
-            self.finish = True
-            return
-        elif self.state == self.Status.Charging:
-            return
-
-        if self.wait_time > 0:
-            self.wait_time -= 1 * dt
-            return
-        elif self.state == self.Status.Wait:
-            self.wait_time = 0
-            self.finish = True
-            return
-
-        if self.direction.x == 0 and self.direction.y == 0:
-            self.finish = True
-            return
-
-        if self.direction.magnitude():
-            self.direction = self.direction.normalize()
-
-        self.position.x += self.direction.x * self.speed * dt
-        self.rect.centerx = self.position.x
-
-        self.position.y += self.direction.y * self.speed * dt
-        self.rect.centery = self.position.y
-
-    def go(self, target: Vector2):
-        if 0 < target.x < FIELD_WIDTH and 0 < target.y < FIELD_HEIGHT:
-            self.battery.state = self.battery.Status.Move
-            self.target = target
-            self.finish = False
-
-    def wait_drone(self, time: int):
-        if time > 0:
-            self.target = Vector2(x=self.rect.x, y=self.rect.y)
-            self.battery.state = self.battery.Status.Wait
-            self.wait_time = time
-            self.finish = False
-
-    def charging(self):
-        self.target = Vector2(x=self.rect.x, y=self.rect.y)
-        self.state = self.Status.Charging
-        self.battery.state = self.battery.Status.Charging
-        self.finish = False
+    def add_task(self, task: Task):
+        self.tasks.clear()
+        self.tasks.append(task)
 
     def manager(self):
-        if self.state == self.Status.Home and self.finish:
-            self.charging()
+        if self.battery.get_percent() > 99:
+            self.state = self.Status.Active
             return
-        if self.state == self.Status.Charging and self.finish:
-            self.state = self.Status.Work
-            return
-        if self.state == self.Status.Work or self.state == self.Status.Wait:
-            if self.battery.predict_move_expense(
-                current_pos=Vector2(x=self.rect.x, y=self.rect.y),
-                target_pos=self.home,
-                speed=self.speed
-            ) < 5:
-                self.state = self.Status.Home
-                self.go(self.home)
-                return
+        if self.battery.get_percent() < 30 and self.state == self.Status.Active:
+            print("1", self.tasks)
+            base_path = self.grid.get_path_to_base(self.position)
+            self.state = self.Status.Home
+            self.move_to_path(base_path)
+            print("2", self.tasks)
+        elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is Base:
+            self.add_task(self.Charging())
 
     def update(self, dt):
         self.battery.update(dt)
-        self.move(dt)
+        self.do_tasks(dt)
         self.manager()
         self.animate(dt)

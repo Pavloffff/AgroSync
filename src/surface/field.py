@@ -25,10 +25,9 @@ class Field:
         self.setup()
 
     def setup(self):
-        for i in range(500, 1500, 50):
-            drone = Scout((i, i), self.drone_sprites)
-            self.drones.append(drone)
-            self.titles.append(drone.title)
+        drone = Scout((FIELD_WIDTH // 2, FIELD_HEIGHT // 2), self.drone_sprites, self.grid)
+        self.drones.append(drone)
+        self.titles.append(drone.title)
 
     def handle_mouse_button_down(self, mouse_pos):
         self.mouse_down = True
@@ -106,7 +105,7 @@ class Field:
                 self.visible_sprites.remove(sprite)
                 self.invisible_drone_sprites.add(sprite)
 
-        print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
+        # print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
         self.visible_sprites.update(dt)
         self.invisible_drone_sprites.update(dt)
 

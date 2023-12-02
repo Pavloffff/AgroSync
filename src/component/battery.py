@@ -40,3 +40,6 @@ class Battery:
     def predict_move_expense(self, current_pos: Vector2, target_pos: Vector2, speed: int):
         t = math.hypot(current_pos.x - target_pos.x, current_pos.y - target_pos.y) / speed
         return get_percent(self.current - t * self.move_expense, self.max_size)
+
+    def get_percent(self):
+        return get_percent(self.current, self.max_size)

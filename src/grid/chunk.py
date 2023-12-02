@@ -16,7 +16,7 @@ class ChunkSprite(Sprite):
 
 class Chunk:
     barrier = False
-    image_path = "assets/chunk/grass.png"
+    image_path: str
 
     def __init__(self, group, pos):
         self.sprite = ChunkSprite(group=group, pos=pos, image_path=self.image_path)

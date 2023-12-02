@@ -22,7 +22,7 @@ def get_screen_resolution():
 
 SCREEN_WIDTH, SCREEN_HEIGHT = get_screen_resolution()
 
-FIELD_WIDTH, FIELD_HEIGHT = 8192, 8192
+FIELD_WIDTH, FIELD_HEIGHT = 2048, 2048
 
 LAYERS = {
     'field': 0,

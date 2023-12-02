@@ -22,6 +22,7 @@ class Field:
         self.visible_sprites = pygame.sprite.Group()
         self.invisible_drone_sprites = pygame.sprite.Group()
         self.grid = Grid(self.field_sprites)
+        print(str(self.grid))
         self.setup()
 
     def setup(self):

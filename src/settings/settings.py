@@ -12,10 +12,10 @@ def get_screen_resolution():
     window_left = abs(active_window.left)
     window_top = abs(active_window.top)
 
-    # for monitor in get_monitors():
-    #     if (monitor.x <= window_left <= monitor.x + monitor.width + 100) and \
-    #             (monitor.y <= window_top <= monitor.y + monitor.height + 100):
-    #         return monitor.width, monitor.height
+    for monitor in get_monitors():
+        if (monitor.x <= window_left <= monitor.x + monitor.width + 100) and \
+                (monitor.y <= window_top <= monitor.y + monitor.height + 100):
+            return monitor.width, monitor.height
 
     return 800, 800
 

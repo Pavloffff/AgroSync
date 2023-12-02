@@ -1,3 +1,4 @@
+from pygame import Vector2
 from pygame.sprite import Sprite
 
 from src.settings.settings import LAYERS
@@ -11,7 +12,7 @@ class ChunkSprite(Sprite):
     def __init__(self, group, image_path, pos):
         super().__init__(group)
         self.image = import_image(image_path, self.size)
-        self.rect = self.image.get_rect(center=pos)
+        self.rect = self.image.get_rect(center=Vector2(x=pos[0] + self.size[0] // 2, y=pos[1] + self.size[1] // 2))
 
 
 class Chunk:

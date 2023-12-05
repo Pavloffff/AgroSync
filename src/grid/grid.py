@@ -68,16 +68,16 @@ class Grid:
         self.group = group
         self.grid = [[] for i in range(height)]
         self.setup_grid()
+        self.points = set()
 
     def setup_grid(self):
         grid = generate_grid()
         for i in range(100):
-            print(f"Grid smooth №{i}")
             grid = smooth_grid(grid)
 
         for i in range(height):
             for j in range(width):
-                if i == height // 2 and j == width // 2:
+                if i == height // 5 and j == width // 5:
                     self.grid[i].append(BaseChunk(group=self.group, pos=(j * ChunkSprite.size[0], i * ChunkSprite.size[1])))
                     continue
                 if grid[i][j] == WaterChunk.type:
@@ -116,9 +116,12 @@ class Grid:
             for j in range(int(current_pos[1]), int(current_pos[1] + current_size[1]) % width):
                 self.grid[i][j].get_sprite()
 
+    def get_grid(self):
+        return self.grid
+
     def __str__(self):
         res = ""
         for i in range(height):
-            res += str([self.grid[i][j].type for j in range(width)])
+            res += str([int(self.grid[i][j].type > 0) for j in range(width)])
             res += "\n"
         return res

@@ -1,5 +1,6 @@
 import pygame
 
+from src.actor.bee import Bee
 from src.grid.grid import Grid
 from src.settings.settings import *
 from src.actor.drone import Drone
@@ -13,7 +14,7 @@ class Field:
         self.titles = []
         self.display_surface = pygame.display.get_surface()
         self.field_surface = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
-        self.scale = 0.5
+        self.scale = 0.2
         self.offset = [0, 0]
         self.mouse_down = False
         self.last_mouse_pos = None
@@ -26,9 +27,14 @@ class Field:
         self.setup()
 
     def setup(self):
-        drone = Scout((FIELD_WIDTH // 2, FIELD_HEIGHT // 2), self.drone_sprites, self.grid)
-        self.drones.append(drone)
-        self.titles.append(drone.title)
+        for i in range(SCOUT_CNT):
+            drone = Scout((FIELD_WIDTH // 5, FIELD_HEIGHT // 5), self.drone_sprites, self.grid)
+            self.drones.append(drone)
+            self.titles.append(drone.title)
+        for i in range(BEE_CNT):
+            drone = Bee((FIELD_WIDTH // 5, FIELD_HEIGHT // 5), self.drone_sprites, self.grid)
+            self.drones.append(drone)
+            self.titles.append(drone.title)
 
     def handle_mouse_button_down(self, mouse_pos):
         self.mouse_down = True
@@ -61,6 +67,7 @@ class Field:
                          (mouse_pos[1] - self.offset[1])
 
     def get_visible_rect(self):
+
         return pygame.Rect(
             -self.offset[0] / self.scale,
             -self.offset[1] / self.scale,
@@ -82,6 +89,8 @@ class Field:
     def __call__(self, dt, *args, **kwargs):
         # self.field_surface.fill('yellow')
         # self.drone_sprites.update(dt)
+        self.visible_sprites.update(dt)
+        self.invisible_drone_sprites.update(dt)
 
         visible_rect = self.get_visible_rect()
         self.grid.get_visible(
@@ -107,8 +116,6 @@ class Field:
                 self.invisible_drone_sprites.add(sprite)
 
         # print(self.visible_sprites, self.invisible_drone_sprites, sep=' ')
-        self.visible_sprites.update(dt)
-        self.invisible_drone_sprites.update(dt)
 
         for layer in LAYERS.values():
             for sprite in self.visible_sprites:

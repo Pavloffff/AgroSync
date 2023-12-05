@@ -14,7 +14,7 @@ from pygame.transform import rotate
 
 
 class Drone(pygame.sprite.Sprite):
-    size = (128, 128)
+    size = (64, 64)
 
     class Task:
         def do(self, drone: super.__class__, dt):
@@ -75,6 +75,8 @@ class Drone(pygame.sprite.Sprite):
     def __init__(self, pos, group, grid: Grid):
         super().__init__(group)
 
+        self.tasks_memory = []
+
         self.animations: list[Surface] = []
         self.import_assets()
         self.frame_index = 0
@@ -94,7 +96,7 @@ class Drone(pygame.sprite.Sprite):
         self.finish = False
 
         # component attributes
-        self.battery = Battery(max_size=1000, wait_expense=50, move_expense=100, charging_increment=100)
+        self.battery = Battery(max_size=1000, wait_expense=5, move_expense=10, charging_increment=100)
         self.state = self.Status.Active
         self.title = Title(self.rect, str(self.state))
 
@@ -114,28 +116,30 @@ class Drone(pygame.sprite.Sprite):
         if self.finish:
             self.tasks = self.tasks[1:] if len(self.tasks) > 1 else []
         if len(self.tasks) == 0:
+            self.tasks = self.tasks_memory
+            self.tasks_memory = []
             self.Wait(1).do(self, dt)
         else:
             self.tasks[0].do(self, dt)
 
     def move_to_path(self, path: list[Vector2]):
-        self.tasks.clear()
+        self.tasks_memory = self.tasks
+        self.tasks = []
         for target in path:
             self.tasks.append(self.Move(target))
 
     def add_task(self, task: Task):
-        self.tasks.clear()
         self.tasks.append(task)
 
     def manager(self):
-        if self.battery.get_percent() > 99:
+        if self.battery.get_percent() > 99 or self.battery.state is self.battery.Status.EndCharging:
             self.state = self.Status.Active
             return
         if self.battery.get_percent() < 30 and self.state == self.Status.Active:
             base_path = self.grid.get_path_to_base(self.position)
             self.state = self.Status.Home
             self.move_to_path(base_path)
-        elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is BaseChunk:
+        elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is BaseChunk and self.battery.state is not self.battery.Status.Charging:
             self.add_task(self.Charging())
 
     def update(self, dt):

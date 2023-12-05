@@ -22,9 +22,15 @@ def get_screen_resolution():
 
 SCREEN_WIDTH, SCREEN_HEIGHT = get_screen_resolution()
 
-FIELD_WIDTH, FIELD_HEIGHT = 8192, 8192
-
 LAYERS = {
     'field': 0,
     'drone': 1
 }
+
+SCOUT_CNT = 1
+BEE_CNT = 0
+SECTOR_SIZE = 8
+CHUNK_SIZE = 128
+
+FIELD_WIDTH, FIELD_HEIGHT = SECTOR_SIZE * CHUNK_SIZE * 5, SECTOR_SIZE * CHUNK_SIZE * 5
+# FIELD_WIDTH, FIELD_HEIGHT = 2048, 2048

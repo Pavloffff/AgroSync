@@ -6,7 +6,7 @@ from src.support.support import import_image
 
 
 class ChunkSprite(Sprite):
-    size = (256, 256)
+    size = (128, 128)
     z = LAYERS['field']
 
     def __init__(self, group, image_path, pos):

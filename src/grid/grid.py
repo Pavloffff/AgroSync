@@ -118,7 +118,8 @@ class Grid:
 
     def get_chunk(self, pos: Vector2) -> Chunk:
         current_chunk = get_chunk_idx(pos)
-        return self.grid[current_chunk[1]][current_chunk[0]]
+        sz = len(self.grid) - 1
+        return self.grid[min(max(0, current_chunk[1]), sz)][min(max(0, current_chunk[0]), sz)]
 
     def get_path(self, start: tuple[int, int], end: tuple[int, int]):
         return [start, end]

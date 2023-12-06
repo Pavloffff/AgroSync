@@ -49,7 +49,7 @@ class Scout(Drone):
             self.grid.update_point(self.target, assigned_cnt=1)
             self.add_task(self.Move(target=self.target))
         elif self.state == self.Status.Active and get_chunk_idx(self.position) == self.target:
-            self.add_task(self.Wait(1))
+            # self.add_task(self.Wait(1))
 
             weight = 0
             position = get_chunk_idx(self.position)

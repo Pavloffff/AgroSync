@@ -1,3 +1,4 @@
+import math
 from enum import Enum
 
 import pygame
@@ -13,16 +14,46 @@ from src.support.support import import_folder
 from pygame.transform import rotate
 
 
+def slerp_angle(current, target, factor):
+    # Функция для плавного перехода от текущего угла к целевому с помощью slerp
+    difference = (target - current) % (2 * math.pi)
+    if difference > math.pi:
+        difference -= 2 * math.pi
+    return current + difference * factor
+
+
 class Drone(pygame.sprite.Sprite):
     size = (64, 64)
 
     class Task:
+        def __init__(self):
+            self.psi = 0
         def do(self, drone: super.__class__, dt):
             pass
 
     class Move(Task):
         def __init__(self, target: tuple[int, int]):
+            super().__init__()
             self.target = target
+            self.max_force = 5000
+            self.theta = 0
+            self.tau_y = None
+            self.tau_x = None
+            self.total_force = None
+            self.speed = 0
+            self.acc = 0
+
+            self.mass = 19.27  # масса квадрокоптера, кг
+            self.l = 1.38
+            self.Jx = 0.5 * self.mass * self.l ** 2 # момент инерции вокруг оси X
+            self.Jy = 0.5 * self.mass * self.l ** 2  # момент инерции вокруг оси Y
+
+            self.velocity = Vector2()  # скорость квадрокоптера
+            self.acceleration = Vector2()  # ускорение квадрокоптера
+            self.omega = Vector2(0.0, 0.0)  # угловая скорость вокруг осей X и Y
+            self.angular_acceleration = Vector2()  # угловое ускорение
+            self.rotation_speed = 0.5
+            self.max_speed = 3000
 
         def do(self, drone: super.__class__, dt):
             drone.battery.state = drone.battery.Status.Move
@@ -34,18 +65,45 @@ class Drone(pygame.sprite.Sprite):
             if get_chunk_idx(drone.position) == self.target:
                 drone.finish = True
                 return
+            #
+            # if direction.magnitude():
+            #     direction = direction.normalize()
+            #
+            # drone.position.x += direction.x * drone.speed * dt
+            # drone.rect.centerx = drone.position.x
+            #
+            # drone.position.y += direction.y * drone.speed * dt
+            # drone.rect.centery = drone.position.y
 
-            if direction.magnitude():
-                direction = direction.normalize()
+            if direction.length() > 0:
+                direction.normalize_ip()
+                target_force = direction * self.compute_force_magnitude(direction)
+                self.acceleration = target_force / self.mass
+                # Интеграция для обновления скорости
+                self.velocity += self.acceleration * dt
 
-            drone.position.x += direction.x * drone.speed * dt
-            drone.rect.centerx = drone.position.x
+                drone.position += self.velocity * dt
+                drone.rect.center = drone.position
 
-            drone.position.y += direction.y * drone.speed * dt
-            drone.rect.centery = drone.position.y
+                # Расчет и обновление угла рысканья
+                target_angle = math.atan2(direction.y, direction.x)
+                self.psi = slerp_angle(self.psi, target_angle, self.rotation_speed * dt)
+
+        def compute_force_magnitude(self, direction_to_target):
+            distance_to_target = direction_to_target.length()
+            speed = self.velocity.length()
+            # Параметры для линейного расчета силы
+            max_force = self.max_force  # Максимальная сила
+
+            # Линейное изменение силы
+            force_magnitude = max_force * max(0.1, (1 - distance_to_target / 100))
+
+            return force_magnitude
+
 
     class Wait(Task):
         def __init__(self, wait_time: int):
+            super().__init__()
             self.wait_time = wait_time
 
         def do(self, drone: super.__class__, dt):
@@ -106,7 +164,8 @@ class Drone(pygame.sprite.Sprite):
     def animate(self, dt):
         self.frame_index = (self.frame_index + 100 * dt) % len(self.animations)
         self.title.update(str(self.state) + " " + str(self.battery))
-        self.image = self.animations[int(self.frame_index)]
+        self.image = pygame.transform.rotate(self.animations[int(self.frame_index)],
+                                             0 if not len(self.tasks) else math.degrees(self.tasks[-1].psi))
 
     def do_tasks(self, dt):
         if self.finish:

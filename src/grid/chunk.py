@@ -1,12 +1,12 @@
 from pygame import Vector2
 from pygame.sprite import Sprite
 
-from src.settings.settings import LAYERS
+from src.settings.settings import LAYERS, CHUNK_SIZE
 from src.support.support import import_image
 
 
 class ChunkSprite(Sprite):
-    size = (128, 128)
+    size = (CHUNK_SIZE, CHUNK_SIZE)
     z = LAYERS['field']
 
     def __init__(self, group, image_path, pos):

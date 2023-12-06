@@ -16,6 +16,7 @@ class Bee(Drone):
 
     class ProcessField(Drone.Task):
         def __init__(self, target: tuple[int, int], sector: tuple[int, int]):
+            super().__init__()
             self.target = target
             self.sector = sector
 

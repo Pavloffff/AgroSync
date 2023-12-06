@@ -7,7 +7,7 @@ from pygame.math import Vector2
 from src.component.battery import Battery
 from src.component.title import Title
 from src.grid.chunk_types.base import BaseChunk
-from src.grid.grid import Grid
+from src.grid.grid import Grid, get_chunk_pos, get_chunk_idx
 from src.settings.settings import FIELD_WIDTH, FIELD_HEIGHT, LAYERS
 from src.support.support import import_folder
 from pygame.transform import rotate
@@ -21,21 +21,17 @@ class Drone(pygame.sprite.Sprite):
             pass
 
     class Move(Task):
-        def __init__(self, target: Vector2):
-            if 0 <= target.x <= FIELD_WIDTH and 0 <= target.y <= FIELD_HEIGHT:
-                self.target = target
-            else:
-                self.target = Vector2(
-                    x=target.x % FIELD_WIDTH if target.x >= 0 else 0,
-                    y=target.y % FIELD_HEIGHT if target.y >= 0 else 0
-                )
+        def __init__(self, target: tuple[int, int]):
+            self.target = target
 
         def do(self, drone: super.__class__, dt):
             drone.battery.state = drone.battery.Status.Move
             drone.finish = False
 
-            direction = Vector2(x=self.target.x - drone.rect.x, y=self.target.y - drone.rect.y)
-            if direction.x == 0 and direction.y == 0:
+            pos_target = get_chunk_pos(self.target)
+
+            direction = Vector2(x=pos_target.x - drone.rect.x, y=pos_target.y - drone.rect.y)
+            if get_chunk_idx(drone.position) == self.target:
                 drone.finish = True
                 return
 
@@ -89,7 +85,7 @@ class Drone(pygame.sprite.Sprite):
         # movement attributes
         self.direction = Vector2()
         self.position = Vector2(self.rect.center)
-        self.speed = 300
+        self.speed = 600
 
         # manage attributes
         self.tasks: list[Drone.Task] = [self.Wait(1)]
@@ -101,7 +97,7 @@ class Drone(pygame.sprite.Sprite):
         self.title = Title(self.rect, str(self.state))
 
         # map attribute
-        self.grid = grid
+        self.grid: Grid = grid
 
     def import_assets(self):
         full_path = 'assets/drone'
@@ -122,7 +118,7 @@ class Drone(pygame.sprite.Sprite):
         else:
             self.tasks[0].do(self, dt)
 
-    def move_to_path(self, path: list[Vector2]):
+    def move_to_path(self, path: list[tuple[int, int]]):
         self.tasks_memory = self.tasks
         self.tasks = []
         for target in path:
@@ -131,14 +127,16 @@ class Drone(pygame.sprite.Sprite):
     def add_task(self, task: Task):
         self.tasks.append(task)
 
+    def go_home(self):
+        base_path = self.grid.get_path_to_base(self.position)
+        self.state = self.Status.Home
+        self.move_to_path(base_path)
+
     def manager(self):
         if self.battery.get_percent() > 99 or self.battery.state is self.battery.Status.EndCharging:
             self.state = self.Status.Active
-            return
         if self.battery.get_percent() < 30 and self.state == self.Status.Active:
-            base_path = self.grid.get_path_to_base(self.position)
-            self.state = self.Status.Home
-            self.move_to_path(base_path)
+            self.go_home()
         elif self.state == self.Status.Home and type(self.grid.get_chunk(self.position)) is BaseChunk and self.battery.state is not self.battery.Status.Charging:
             self.add_task(self.Charging())
 

@@ -18,8 +18,12 @@ class ChunkSprite(Sprite):
 class Chunk:
     barrier = False
     image_path: str
+    type: int
+    assigned = False
 
     def __init__(self, group, pos):
+        self.group = group
+        self.pos = pos
         self.sprite = ChunkSprite(group=group, pos=pos, image_path=self.image_path)
 
     def get_sprite(self):

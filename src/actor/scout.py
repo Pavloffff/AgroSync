@@ -18,6 +18,11 @@ class Scout(Drone):
 
     def manager(self):
         super().manager()
+
+        if self.state == self.Status.Home and self.target is not None:
+            self.grid.update_point(self.target, assigned_cnt=-1)
+            self.target = None
+
         if self.grid.phase != self.grid.Phase.Searching:
             self.go_home()
             return

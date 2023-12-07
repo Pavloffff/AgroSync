@@ -99,8 +99,8 @@ class Grid:
 
     def setup_grid(self):
         grid = generate_grid()
-        # for i in range(100):
-        #     grid = smooth_grid(grid)
+        for i in range(50):
+            grid = smooth_grid(grid)
 
         for i in range(height):
             for j in range(width):

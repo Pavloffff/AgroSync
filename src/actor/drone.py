@@ -66,26 +66,26 @@ class Drone(pygame.sprite.Sprite):
                 drone.finish = True
                 return
             #
-            # if direction.magnitude():
-            #     direction = direction.normalize()
-            #
-            # drone.position.x += direction.x * drone.speed * dt
-            # drone.rect.centerx = drone.position.x
-            #
-            # drone.position.y += direction.y * drone.speed * dt
-            # drone.rect.centery = drone.position.y
+            if direction.magnitude():
+                direction = direction.normalize()
+
+            drone.position.x += direction.x * drone.speed * dt
+            drone.rect.centerx = drone.position.x
+
+            drone.position.y += direction.y * drone.speed * dt
+            drone.rect.centery = drone.position.y
 
             if direction.length() > 0:
-                direction.normalize_ip()
-                target_force = direction * self.compute_force_magnitude(direction)
-                self.acceleration = target_force / self.mass
-                # Интеграция для обновления скорости
-                self.velocity += self.acceleration * dt
-
-                drone.position += self.velocity * dt
-                drone.rect.center = drone.position
-
-                # Расчет и обновление угла рысканья
+            #     direction.normalize_ip()
+            #     target_force = direction * self.compute_force_magnitude(direction)
+            #     self.acceleration = target_force / self.mass
+            #     # Интеграция для обновления скорости
+            #     self.velocity += self.acceleration * dt
+            #
+            #     drone.position += self.velocity * dt
+            #     drone.rect.center = drone.position
+            #
+            #     # Расчет и обновление угла рысканья
                 target_angle = math.atan2(direction.y, direction.x)
                 self.psi = slerp_angle(self.psi, target_angle, self.rotation_speed * dt)
 
